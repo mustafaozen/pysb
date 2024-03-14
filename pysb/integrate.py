@@ -2,6 +2,9 @@ import numpy
 from pysb.simulator import ScipyOdeSimulator
 
 
+JULIA_SOLVERS = ['Rodas4p']
+
+
 class Solver(object):
     """An interface for numeric integration of models.
 
@@ -64,11 +67,17 @@ class Solver(object):
     def __init__(self, model, tspan, use_analytic_jacobian=False,
                  integrator='vode', cleanup=True,
                  verbose=False, **integrator_options):
-        self._sim = ScipyOdeSimulator(model, verbose=verbose, tspan=tspan,
-                                     use_analytic_jacobian=
-                                     use_analytic_jacobian,
-                                     integrator=integrator, cleanup=cleanup,
-                                     **integrator_options)
+
+        if integrator in JULIA_SOLVERS:
+            pass
+        else:
+            self._sim = ScipyOdeSimulator(model,
+                                          verbose=verbose,
+                                          tspan=tspan,
+                                          use_analytic_jacobian=use_analytic_jacobian,
+                                          integrator=integrator,
+                                          cleanup=cleanup,
+                                          **integrator_options)
         self.result = None
         self._yexpr_view = None
         self._yobs_view = None
@@ -242,8 +251,12 @@ def odesolve(model, tspan, param_values=None, y0=None, integrator='vode',
      [1.4502e-05   1.8209e-01]]
 
     """
-    integrator_options['integrator'] = integrator
-    sim = ScipyOdeSimulator(model, tspan=tspan, cleanup=cleanup,
-                            verbose=verbose, **integrator_options)
-    simres = sim.run(param_values=param_values, initials=y0)
-    return simres.all
+
+    if integrator in JULIA_SOLVERS:
+        import ipdb; ipdb.set_trace()
+    else:
+        integrator_options['integrator'] = integrator
+        sim = ScipyOdeSimulator(model, tspan=tspan, cleanup=cleanup,
+                                verbose=verbose, **integrator_options)
+        simres = sim.run(param_values=param_values, initials=y0)
+        return simres.all
