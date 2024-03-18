@@ -318,54 +318,28 @@ def _integrator_process(
 
     rhs = rhs_builder._get_rhs()
 
-    def f(u, p, t):
-        return rhs(t, u, p, e)
+    def f(du, u, p, t):
+        u = np.array(u)
+        result = rhs(t, u, p, e)
+        for i, x in enumerate(result):
+            du[i] = x
+
+        return du
 
     tbounds = (tspan[0], tspan[-1])
-
     problem = de.ODEProblem(f, initials, tbounds, p)
-
-    results = de.solve(problem, de.Tsit5())
+    solution = de.solve(problem, de.Tsit5())
 
     import ipdb; ipdb.set_trace()
 
-    integrator = de.init(problem, de.Tsit5())
+    # TODO: time series may be uneven, how to return times also?
+    # return solution.t, solution.u
 
+    trajectory = np.array([
+        np.array(variable)
+        for variable in solution.u])
 
-    # # LSODA
-    # if integrator_name == 'lsoda':
-    #     return scipy.integrate.odeint(
-    #         rhs_fn,
-    #         initials,
-    #         tspan,
-    #         args=extra_args,
-    #         Dfun=jac_fn,
-    #         tfirst=True,
-    #         **integrator_opts
-    #     )
-
-    # # All other integrators
-    # integrator = scipy.integrate.ode(rhs_fn, jac=jac_fn)
-    # with warnings.catch_warnings():
-    #     warnings.filterwarnings('error', 'No integrator name match')
-    #     integrator.set_integrator(integrator_name, **integrator_opts)
-    # integrator.set_initial_value(initials, tspan[0])
-
-    # # Set parameter vectors for RHS func and Jacobian
-    # integrator.set_f_params(*extra_args)
-    # if rhs_builder.with_jacobian:
-    #     integrator.set_jac_params(*extra_args)
-
-    # trajectory = np.ndarray((len(tspan), rhs_builder.num_species))
-    # trajectory[0] = initials
-    # i = 1
-    # while integrator.successful() and integrator.t < tspan[-1]:
-    #     trajectory[i] = integrator.integrate(tspan[i])
-    #     i += 1
-    # if integrator.t < tspan[-1]:
-    #     trajectory[i:, :] = 'nan'
-
-    # return trajectory
+    return trajectory
 
 
 class RhsBuilder:
