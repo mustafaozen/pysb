@@ -1,5 +1,5 @@
 import numpy
-from pysb.simulator import ScipyOdeSimulator
+from pysb.simulator import ScipyOdeSimulator, JuliaSimulator
 
 
 JULIA_SOLVERS = ['Rodas4p']
@@ -69,7 +69,15 @@ class Solver(object):
                  verbose=False, **integrator_options):
 
         if integrator in JULIA_SOLVERS:
-            pass
+            self._sim = JuliaSimulator(
+                model,
+                verbose=verbose,
+                tspan=tspan,
+                use_analytic_jacobian=use_analytic_jacobian,
+                integrator=integrator,
+                cleanup=cleanup,
+                **integrator_options)
+
         else:
             self._sim = ScipyOdeSimulator(model,
                                           verbose=verbose,

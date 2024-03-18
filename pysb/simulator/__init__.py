@@ -7,9 +7,9 @@ from .bng import BngSimulator, PopulationMap
 from .kappa import KappaSimulator
 from .opencl_ssa import OpenCLSSASimulator
 from .cuda_ssa import CudaSSASimulator
-from .julia import JuliaOdeSimulator
+from .julia import JuliaSimulator
 
 __all__ = ['BngSimulator', 'CupSodaSimulator', 'ScipyOdeSimulator',
            'StochKitSimulator', 'SimulationResult', 'PopulationMap',
            'KappaSimulator', 'OpenCLSSASimulator', 'CudaSSASimulator',
-           'JuliaOdeSimulator']
+           'JuliaSimulator']
