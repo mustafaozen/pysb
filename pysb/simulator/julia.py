@@ -226,14 +226,37 @@ class JuliaSimulator(Simulator):
             results = [executor.submit(sim_partial, *args)
                        for args in zip(self.initials, self.param_values)]
             try:
-                trajectories = [r.result() for r in results]
+                collated = [r.result() for r in results]
             finally:
                 for r in results:
                     r.cancel()
 
-        tout = np.array([self.tspan] * n_sims)
         self._logger.info('All simulation(s) complete')
-        return SimulationResult(self, tout, trajectories)
+
+        variables = collated[0][1].shape[1]
+        steps = max([
+            len(time)
+            for time, trajectory in collated])
+
+        timelines = np.zeros((n_sims, steps))
+        trajectories = np.zeros((n_sims, steps, variables))
+
+        for index, result in enumerate(collated):
+            time, trajectory = result
+            pad = steps - len(time)
+
+            timelines[index] = np.pad(
+                time,
+                (0, pad))
+
+            trajectories[index] = np.pad(
+                trajectory,
+                (0, pad))
+
+        return SimulationResult(
+            self,
+            timelines,
+            trajectories)
 
 
 @contextlib.contextmanager
@@ -330,16 +353,12 @@ def _integrator_process(
     problem = de.ODEProblem(f, initials, tbounds, p)
     solution = de.solve(problem, de.Tsit5())
 
-    import ipdb; ipdb.set_trace()
-
-    # TODO: time series may be uneven, how to return times also?
-    # return solution.t, solution.u
-
+    time = np.array(solution.t)
     trajectory = np.array([
         np.array(variable)
         for variable in solution.u])
 
-    return trajectory
+    return time, trajectory
 
 
 class RhsBuilder:

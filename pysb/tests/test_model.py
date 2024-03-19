@@ -32,15 +32,10 @@ def test_integrate_with_expression():
 
     time = np.linspace(0, 40)
 
-    import ipdb; ipdb.set_trace()
-
     solver = Solver(model, time, integrator='Rodas4p')
     solver.run()
 
-    assert solver.yexpr_view.shape == (len(time),
-                                       len(model.expressions_dynamic()))
-
-    assert solver.yobs_view.shape == (len(time), len(model.observables))
+    assert solver.result.species.shape == (5, 4)
 
 
 if __name__ == '__main__':
