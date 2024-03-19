@@ -28,9 +28,6 @@ class JuliaSimulator(Simulator):
     """
     Simulate a model using Julia ODE integration through diffeqpy
 
-    Uses :func:`scipy.integrate.odeint` for the ``lsoda`` integrator,
-    :func:`scipy.integrate.ode` for all other integrators.
-
     .. warning::
         The interface for this class is considered experimental and may
         change without warning as PySB is updated.
@@ -87,7 +84,7 @@ class JuliaSimulator(Simulator):
     >>> from pysb.examples.robertson import model
     >>> import numpy as np
     >>> np.set_printoptions(precision=4)
-    >>> sim = ScipyOdeSimulator(model, tspan=np.linspace(0, 40, 10))
+    >>> sim = JuliaSimulator(model, tspan=np.linspace(0, 40, 10))
     >>> simulation_result = sim.run()
     >>> print(simulation_result.observables['A_total']) \
         #doctest: +NORMALIZE_WHITESPACE
@@ -164,13 +161,6 @@ class JuliaSimulator(Simulator):
         # defaults
         self.opts = options
 
-        # if integrator != 'lsoda':
-        #     # Only used to check the user has selected a valid integrator
-        #     self.integrator = scipy.integrate.ode(None)
-        #     with warnings.catch_warnings():
-        #         warnings.filterwarnings('error', 'No integrator name match')
-        #         self.integrator.set_integrator(integrator, **options)
-
     @property
     def _patch_distutils_logging(self):
         """Return distutils logging context manager based on our logger."""
@@ -241,6 +231,8 @@ class JuliaSimulator(Simulator):
         timelines = np.zeros((n_sims, steps))
         trajectories = np.zeros((n_sims, steps, variables))
 
+        # account for timelines of different lengths
+        # by padding shorter trajectories
         for index, result in enumerate(collated):
             time, trajectory = result
             pad = steps - len(time)
