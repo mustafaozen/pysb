@@ -59,10 +59,17 @@ class JuliaSimulator(Simulator):
         True is equal to DEBUG.
     **kwargs : dict
         Extra keyword arguments, including:
-
-        * ``integrator``: Choice of integrator, including ``vode`` (default),
-          ``zvode``, ``lsoda``, ``dopri5`` and ``dop853``. See
-          :func:`scipy.integrate.ode` for further information.
+        * ``integrator``: Choice of integrator: Tsit5 (default), Rodas4, Rodas4p, Rodas5, Rodas5p, Rosenbrock23, 
+            Suggestions:
+            * Unknown stiffness:
+                * For default tolerances: AutoTsit5(Rosenbrock23())
+                * For lower tolerances: AutoVern7(Rodas4), AutoVern7(KenCarp4), AutoVern7(Rodas5p),
+                                        AutoVern9(Rodas4), AutoVern9(KenCarp4), AutoVern9(Rodas5p),
+            * For non-stiff problems:
+                * Tsit5 (recommended for most non-stiff problems),
+                  BS5 (when more robust error control is required),
+                  BS3, OwrenZen3, OwrenZen5, Vern6, Vern7, Vern8, Vern9, Feagin12, Feagin14
+        See https://docs.sciml.ai/DiffEqDocs/stable/solvers/ode_solve/ for many more.
         * ``integrator_options``: A dictionary of keyword arguments to
           supply to the integrator. See :func:`scipy.integrate.ode`.
         * ``compiler``: Choice of compiler for ODE system: ``cython``,
